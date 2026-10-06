@@ -1,5 +1,11 @@
 package io.github.hectorvent.floci.services.sns;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.hectorvent.floci.config.EmulatorConfig;
 import io.github.hectorvent.floci.core.common.AwsArnUtils;
 import io.github.hectorvent.floci.core.common.AwsException;
@@ -11,13 +17,13 @@ import io.github.hectorvent.floci.core.resource.ExplorerResource;
 import io.github.hectorvent.floci.core.resource.ResourceProvider;
 import io.github.hectorvent.floci.core.resource.SupportedResourceType;
 import io.github.hectorvent.floci.core.storage.AccountAwareStorageBackend;
+import io.github.hectorvent.floci.core.storage.InMemoryStorage;
 import io.github.hectorvent.floci.core.storage.StorageBackend;
 import io.github.hectorvent.floci.core.storage.StorageFactory;
 import io.github.hectorvent.floci.services.firehose.FirehoseService;
 import io.github.hectorvent.floci.services.firehose.model.Record;
 import io.github.hectorvent.floci.services.lambda.LambdaService;
 import io.github.hectorvent.floci.services.lambda.model.InvocationType;
-import io.github.hectorvent.floci.core.storage.InMemoryStorage;
 import io.github.hectorvent.floci.services.sns.model.PlatformApplication;
 import io.github.hectorvent.floci.services.sns.model.PlatformEndpoint;
 import io.github.hectorvent.floci.services.sns.model.PushNotification;
@@ -26,11 +32,6 @@ import io.github.hectorvent.floci.services.sns.model.Subscription;
 import io.github.hectorvent.floci.services.sns.model.Topic;
 import io.github.hectorvent.floci.services.sqs.SqsService;
 import io.github.hectorvent.floci.services.sqs.model.MessageAttributeValue;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import org.jboss.logging.Logger;
@@ -2070,7 +2071,7 @@ public class SnsService implements Resettable, ResourceProvider {
             ObjectNode root = objectMapper.createObjectNode();
             root.putArray("Records").add(record);
             return objectMapper.writeValueAsString(root);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             return "{\"Records\":[]}";
         }
     }
@@ -2155,7 +2156,7 @@ public class SnsService implements Resettable, ResourceProvider {
                 }
             }
             return objectMapper.writeValueAsString(node);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             LOG.warnv("Failed to build SNS envelope for {0}: {1}", subscriptionArn, e.getMessage());
             return "{}";
         }
@@ -2201,7 +2202,7 @@ public class SnsService implements Resettable, ResourceProvider {
                 }
             }
             return objectMapper.writeValueAsString(node);
-        } catch (Exception e) {
+        } catch (JsonProcessingException e) {
             return "{}";
         }
     }
